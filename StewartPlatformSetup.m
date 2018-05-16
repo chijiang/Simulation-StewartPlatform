@@ -1,3 +1,29 @@
+%% Simulation of a Stewart platform
+
+%  Instructions
+%  ------------
+%
+%  This file is the setup file to simulate a Stewart platform, which
+%  is designed for project using in IRP, TU Braunschweig. The thesis 
+%  "Design und Dynamikanalyse der Stewart-Plattform" by Yunqi Gu provides
+%  the theoretical background of this simulation. The detail of the
+%  simulation process is written in thesis "Simulation einer Stewart-
+%  Plattform mit MATLAB" by Chijiang Duan.
+%  The files needed in this simulation
+%  
+%     Base.step
+%     Control_loop.slx
+%     holder.step
+%     inverse_kinematic.m
+%     leg_d.step
+%     leg_u.step
+%     platform.step
+%     StewartPlatformSetup.m
+%
+%  All datas and files can be downloaded from
+%  https://github.com/chijiang/Simulation-StewartPlatform.git
+
+%% Initialization
 clc; clear; close all; format;
 %% Define basic angular unit conversions and axes
 deg2rad = pi / 180;
@@ -40,6 +66,7 @@ for i = 1:6
     leg_vectors(i, :) = legs(i, :) / leg_length(i);
 end 
 
+%% Important translations, density and center of masses (Not all needed for this version of simulation)
 % %% revolute and cylindrical axes for joints
 % rev1 = zeros(6,3);
 % rev2 = zeros(6,3);
@@ -58,8 +85,6 @@ end
 %     rev3(i,:) = rev1(i,:);
 %     rev4(i,:) = rev2(i,:);
 % end
-
-%% Center of gravity
 % % The Translation from platform to upper legs
 top2leg = pos_top' - (height + 0.05 + 0.02) * [zeros(2,6);ones(1,6)];
 % lower_leg = struct('origin', [0 0 0], 'rotation', eye(3), 'end_point', [0 0 0]);
@@ -74,8 +99,8 @@ top2leg = pos_top' - (height + 0.05 + 0.02) * [zeros(2,6);ones(1,6)];
 % end
 
 % %% Inertia and mass of the top plate, bottom plate, and the legs
-% top_thickness = 0.04;
-% base_thickness = 0.05;
+top_thickness = 0.04;
+base_thickness = 0.05;
 % inner_radius = 0.02; % legs
 % outer_radius = 0.035; % legs
 density = 7.85e3; % Kg/m^3 --- steel
@@ -86,18 +111,18 @@ density = 7.85e3; % Kg/m^3 --- steel
 
 %% PID controller gains
 % Kp = 2e6; Ki = 1e4; Kd = 4.5e4;
-Kp = 3e6; Ki = 0; Kd = 0;
+Kp = 3e6; Ki = 0; Kd = 4.5e4;
 
 %% Motion control
 % Amplitude of sine signals
-xang_a = 20*deg2rad; yang_a = 20*deg2rad; zang_a = 0;
-xpos_a = 0; ypos_a = 0; zpos_a = 0;
+xang_a = 0; yang_a = 0; zang_a = 0;
+xpos_a = 0; ypos_a = 0; zpos_a = 0.2;
 % Frequency of sine signals
 xang_f = 2; yang_f = 2; zang_f = 2;
 xpos_f = 2; ypos_f = 2; zpos_f = 2;
 % Phase of sine signals
-xang_p = 0; yang_p = pi/2; zang_p = 0;
-xpos_p = 0; ypos_p = pi/2; zpos_p = 0;
+xang_p = 0; yang_p = 0; zang_p = 0;
+xpos_p = 0; ypos_p = 0; zpos_p = 0;
 
 %% Initial posture
 alpha = xang_a*sin(0 + xang_p); 
@@ -111,26 +136,26 @@ speed_top = zeros(6, 1);
 [length, speed] = inverse_kinematic(alpha, beta, gamma, top_position, speed_top, pos_base', top2leg);
 length = length - leg_length;
 
-% maxerror = []; Kppar = [];maxf = [];
-i = 1;
-for Kd = [1000, 50000, 100000]
-
-sim('Control_loop.slx') 
-% subplot(2,1,1)
-subplot(3,2,i)
-plot(error)
-title(['Error by K_d = ', num2str(Kd)])
-legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
-ylabel('Error [m]')
-xlabel('Sampling Point')
-subplot(3,2,i+1)
-plot(force)
-title(['Force by K_d = ', num2str(Kd)])
-ylabel('Force [N]')
-xlabel('Sampling Point')
-legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
-i = i + 2;
-end
-saveas(gcf, '/media/chijiang/CHIJIANG/kpvari.png')
-% figure(1); plot(Kppar, maxerror,'ro');
-% figure(2); plot(Kppar, maxf,'bo');
+%% Perform the simulation
+% i = 1;
+% for Ki = [0, 1000, 10000]
+% 
+% sim('Control_loop.slx') 
+% subplot(3,2,i)
+% plot(error, 'LineWidth', 2)
+% title(['Error by K_i = ', num2str(Ki)])
+% legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
+% ylabel('Error [m]')
+% xlabel('Sampling Point')
+% set(gca,'FontSize',15)
+% subplot(3,2,i+1)
+% plot(force, 'LineWidth', 2)
+% title(['Force by K_i = ', num2str(Ki)])
+% ylabel('Force [N]')
+% xlabel('Sampling Point')
+% legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
+% set(gca,'FontSize',15)
+% i = i + 2;
+% end
+% saveas(gcf, '~/Documents/StewartPlatform/kpvari.png')
+sim('Control_loop.slx')

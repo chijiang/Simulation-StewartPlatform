@@ -1,3 +1,18 @@
+%% Inverse kinematics of a Stewart platform
+%  ----------Parameters--------
+%  alpha:           The rotating angle of the top platform about x axis
+%  beta:            The rotating angle of the top platform about y axis
+%  gamma:           The rotating angle of the top platform about z axis
+%  top_position:    The position vector of the top platform
+%  speed_top:       The vector of velocity and angular velocity of the top
+%                   platform
+%  pos_base:        The position vector of the attachment points on the base
+%  top2leg:         Translation from top platform to the attachment point
+%                   on the platform
+
+%  ----------Return--------
+%  length:          The length vector shows the length of each leg
+%  speed:           The sliding velocities of the cylinderical joints on legs
 function [length, speed] = inverse_kinematic(alpha, beta, gamma, top_position, speed_top, pos_base, top2leg)
     % Rotation about x axis
     R1 = [1 0 0; 0 cos(alpha) -sin(alpha); 0 sin(alpha) cos(alpha)];
@@ -23,6 +38,6 @@ function [length, speed] = inverse_kinematic(alpha, beta, gamma, top_position, s
         leg_vectors(:, i) = L(:, i) / length(i);
     end
     
-    %
+    % Velocities of legs
     speed = [leg_vectors', (cross(R * top2leg, leg_vectors))'] * speed_top;
 end
