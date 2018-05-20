@@ -38,7 +38,7 @@ radius_b = 0.25145;
 radius_t = 0.2169;
 alpha_b = (60 - 11.47) * deg2rad;
 alpha_t = 12.86 * deg2rad;
-height = 0.55;
+height = 0.5;
 
 for i = 1:3 
     % base points
@@ -99,30 +99,30 @@ top2leg = pos_top' - (height + 0.05 + 0.02) * [zeros(2,6);ones(1,6)];
 % end
 
 % %% Inertia and mass of the top plate, bottom plate, and the legs
-top_thickness = 0.04;
-base_thickness = 0.05;
+% top_thickness = 0.04;
+% base_thickness = 0.05;
 % inner_radius = 0.02; % legs
 % outer_radius = 0.035; % legs
-density = 7.85e3; % Kg/m^3 --- steel
-% [lower_leg_mass, lower_leg_inertia] = inertiaCylinder(density, 0.75*leg_length(1),outer_radius, inner_radius);
-% [upper_leg_mass, upper_leg_inertia] = inertiaCylinder(density, 0.75*leg_length(1),inner_radius, 0);
+density = 2712; % Kg/m^3 --- Aluminum    2712;
+% [lower_leg_mass, lower_leg_inertia] = inertiaCylinder(density, 0.350,outer_radius, inner_radius);
+% [upper_leg_mass, upper_leg_inertia] = inertiaCylinder(density, 0.350,inner_radius, 0);
 % [top_mass, top_inertia] = inertiaCylinder(density, top_thickness, radius_t, 0.15);
-% [base_mass, base_inertia] = inertiaCylinder(density, base_thickness,radius_b, 0.175);
+% [base_mass, base_inertia] = inertiaCylinder(density, base_thickness, radius_b, 0.175);
 
 %% PID controller gains
 % Kp = 2e6; Ki = 1e4; Kd = 4.5e4;
-Kp = 3e6; Ki = 0; Kd = 4.5e4;
+Kp = 3e6; Ki = 0; Kd = 2.5e4;
 
 %% Motion control
 % Amplitude of sine signals
-xang_a = 0; yang_a = 0; zang_a = 0;
-xpos_a = 0; ypos_a = 0; zpos_a = 0.2;
+xang_a = 0; yang_a = 20*deg2rad; zang_a = 0;
+xpos_a = 0.15; ypos_a = 0; zpos_a = 0;
 % Frequency of sine signals
-xang_f = 2; yang_f = 2; zang_f = 2;
-xpos_f = 2; ypos_f = 2; zpos_f = 2;
+xang_f = 2; yang_f = 2; zang_f = 0;
+xpos_f = 2; ypos_f = 0; zpos_f = 2;
 % Phase of sine signals
 xang_p = 0; yang_p = 0; zang_p = 0;
-xpos_p = 0; ypos_p = 0; zpos_p = 0;
+xpos_p = 0; ypos_p = pi/2; zpos_p = 0;
 
 %% Initial posture
 alpha = xang_a*sin(0 + xang_p); 
@@ -138,24 +138,87 @@ length = length - leg_length;
 
 %% Perform the simulation
 % i = 1;
-% for Ki = [0, 1000, 10000]
-% 
-% sim('Control_loop.slx') 
-% subplot(3,2,i)
-% plot(error, 'LineWidth', 2)
-% title(['Error by K_i = ', num2str(Ki)])
-% legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
-% ylabel('Error [m]')
-% xlabel('Sampling Point')
-% set(gca,'FontSize',15)
-% subplot(3,2,i+1)
-% plot(force, 'LineWidth', 2)
-% title(['Force by K_i = ', num2str(Ki)])
-% ylabel('Force [N]')
-% xlabel('Sampling Point')
-% legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
-% set(gca,'FontSize',15)
-% i = i + 2;
+% for Ki = [0, 1000, 1e4]
+%     sim('Control_loop.slx') 
+%     subplot(3,2,i)
+%     plot(error, 'LineWidth', 2)
+%     title(['Error by K_i = ', num2str(Ki)])
+%     legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
+%     ylabel('Error [m]')
+%     xlabel('Time [s]')
+%     set(gca,'FontSize',15)
+%     subplot(3,2,i+1)
+%     plot(force, 'LineWidth', 2)
+%     % axis([0,5,50,120]);
+%     title(['Force by K_i = ', num2str(Ki)])
+%     ylabel('Force [N]')
+%     xlabel('Time [s]')
+%     legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
+%     set(gca,'FontSize',15)
+%     i = i + 2;
 % end
-% saveas(gcf, '~/Documents/StewartPlatform/kpvari.png')
+% --------------------------------------------------
+% Pendulum
+% figure;
+% sim('Control_loop.slx')
+% subplot(3,2,1)
+% plot(Platform_pos, 'LineWidth', 2)
+% legend('x','y','z')
+% title('Platform position for pendulum')
+% xlabel('Time [s]')
+% ylabel('Position [m]')
+% set(gca,'FontSize',15)
+% subplot(3,2,3)
+% plot(error, 'LineWidth', 2)
+% legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
+% title('Error for pendulum')
+% xlabel('Time [s]')
+% ylabel('Error [m]')
+% set(gca,'FontSize',15)
+% subplot(3,2,5)
+% plot(force, 'LineWidth', 2)
+% legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
+% title('Leg force for pendulum')
+% xlabel('Time [s]')
+% ylabel('Force [N]')
+% set(gca,'FontSize',15)
+% % -------------------------------------------------
+% % Lifting movement
+% yang_a = 0; xpos_a = 0; zpos_a = 0.2;
+% zpos_f = 2; zpos_p = 0;
+% alpha = xang_a*sin(0 + xang_p); 
+% beta = yang_a*sin(0 + yang_p); 
+% gamma = zang_a*sin(0 + zang_p);
+% 
+% top_position = [xpos_a*sin(0 + xpos_p); 
+%     ypos_a*sin(0 + ypos_p); 
+%     zpos_a*sin(0 + zpos_p) + height+0.07];
+% speed_top = zeros(6, 1);
+% [length, speed] = inverse_kinematic(alpha, beta, gamma, top_position, speed_top, pos_base', top2leg);
+% length = length - leg_length;
+% sim('Control_loop.slx')
+% subplot(3,2,2)
+% plot(Platform_pos, 'LineWidth', 2)
+% legend('x','y','z')
+% title('Platform position for lifting movement')
+% xlabel('Time [s]')
+% ylabel('Position [m]')
+% set(gca,'FontSize',15)
+% subplot(3,2,4)
+% plot(error, 'LineWidth', 2)
+% legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
+% title('Error for lifting movement')
+% xlabel('Time [s]')
+% ylabel('Error [m]')
+% set(gca,'FontSize',15)
+% subplot(3,2,6)
+% plot(force, 'LineWidth', 2)
+% legend('Leg 1','Leg 2','Leg 3','Leg 4','Leg 5','Leg 6')
+% title('Leg force for lifting movement')
+% xlabel('Time [s]')
+% ylabel('Force [N]')
+% set(gca,'FontSize',15)
+
+% saveas(gcf, '~/Documents/StewartPlatform/variFig.png')
+
 sim('Control_loop.slx')
